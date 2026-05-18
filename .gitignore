@@ -1,0 +1,13 @@
+# PHP Composer dependencies
+/vendor/
+
+# Application Logs
+activity.log
+otp.txt
+
+# OS & Editor configurations
+.vscode/
+.idea/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
