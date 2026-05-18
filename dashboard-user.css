@@ -1,0 +1,231 @@
+/* Pixel-Perfect Field Specialist Dashboard Portal Stylesheet */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    box-sizing: border-box;
+}
+
+.portal-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+
+
+/* Header aligned logout action */
+.header-logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background-color: #fee2e2;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.header-logout-btn:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+
+.portal-main {
+    flex-grow: 1;
+    background-color: #f8fafc;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* Top Header Bar */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 16px;
+}
+
+.main-header h1 {
+    color: #0f172a;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+/* Session Active indicator - green glow */
+.session-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #dcfce7;
+    color: #16a34a;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    letter-spacing: 0.3px;
+}
+
+/* 2-Column Content Layout grids */
+.main-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.mt-4 {
+    margin-top: 16px;
+}
+
+/* White Content Cards */
+.panel-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+/* Let bottom card span both grid columns for visual balance on desktop */
+.panel-card.span-2 {
+    grid-column: span 2;
+}
+
+.panel-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
+}
+
+.panel-header h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* Stats lists rows */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #64748b;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.info-value {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* 4. Settings Form Styles */
+.form-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+    border-color: #0d9488;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.form-group input:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+}
+
+/* Action button teal */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.btn-teal {
+    background-color: #0d9488;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+}
+
+.btn-teal:hover {
+    background-color: #0f766e;
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.25);
+}
+
+/* 5. Responsive Portal Layout */
+@media (max-width: 900px) {
+    .portal-main {
+        padding: 24px 16px;
+    }
+    
+    /* On mobile, collapse grid columns back to 1 */
+    .panel-card.span-2 {
+        grid-column: span 1;
+    }
+}
