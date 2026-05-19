@@ -86,13 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Left Sidebar -->
         <div class="dashboard-sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-brand">AMU</div>
+                <div class="sidebar-brand">WEBSECURE</div>
             </div>
 
             <div class="sidebar-content">
                 <img src="https://i.pinimg.com/736x/83/56/55/835655dfe773e2ef81d1878777d24962.jpg"
                     alt="Network Security" class="sidebar-image">
-                <h2 class="sidebar-tagline">Capturing Moments, Creating Memories</h2>
+                <h2 class="sidebar-tagline">Securing Connections, Protecting Identity</h2>
             </div>
 
             <div class="sidebar-footer">
