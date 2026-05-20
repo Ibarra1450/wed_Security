@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // OTP is correct
         $_SESSION['user_id'] = $_SESSION['temp_user_id'];
-        $_SESSION['username'] = $_SESSION['temp_username'];
+        $_SESSION['name'] = $_SESSION['temp_name'];
         $_SESSION['email'] = $_SESSION['temp_email'];
         $_SESSION['role'] = $_SESSION['temp_role'];
         $_SESSION['last_activity'] = time();
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Cleanup temp session
         unset($_SESSION['temp_user_id']);
-        unset($_SESSION['temp_username']);
+        unset($_SESSION['temp_name']);
         unset($_SESSION['temp_email']);
         unset($_SESSION['temp_role']);
         unset($_SESSION['otp']);
@@ -64,12 +64,12 @@ if (isset($_GET['resend'])) {
     $_SESSION['otp_time'] = time();
     
     // Fallback file generation logic
-    $otpMessage = date('Y-m-d H:i:s') . " - [RESEND] OTP for " . $_SESSION['temp_username'] . " (" . $_SESSION['temp_email'] . "): " . $otp . PHP_EOL;
+    $otpMessage = date('Y-m-d H:i:s') . " - [RESEND] OTP for " . $_SESSION['temp_name'] . " (" . $_SESSION['temp_email'] . "): " . $otp . PHP_EOL;
     file_put_contents('otp.txt', $otpMessage, FILE_APPEND);
     
     // Primary mail delivery call routine
     if (function_exists('sendOTPEmail')) {
-        sendOTPEmail($_SESSION['temp_email'], $_SESSION['temp_username'], $otp);
+        sendOTPEmail($_SESSION['temp_email'], $_SESSION['temp_name'], $otp);
     }
     
     setFlashMessage('A fresh verification code has been dispatched to your email inbox.', 'success');

@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Initiate OTP authentication tracking parameters
             $_SESSION['temp_user_id'] = $account['id'];
-            $_SESSION['temp_username'] = $account['username'];
+            $_SESSION['temp_name'] = trim(($account['first_name'] ?? '') . ' ' . ($account['last_name'] ?? ''));
             $_SESSION['temp_email'] = $account['email'];
             $_SESSION['temp_role'] = $accountType;
 
@@ -45,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['otp_time'] = time();
 
             // 1. Keep your original fallback process: Write to log file
-            $otpMessage = date('Y-m-d H:i:s') . " - OTP for " . $account['username'] . " (" . $account['email'] . "): " . $otp . PHP_EOL;
+            $otpMessage = date('Y-m-d H:i:s') . " - OTP for " . $_SESSION['temp_name'] . " (" . $account['email'] . "): " . $otp . PHP_EOL;
             file_put_contents('otp.txt', $otpMessage, FILE_APPEND);
 
             // 2. NEW PROCESS: Instantly deliver the OTP directly to their inbox
-            $emailSent = sendOTPEmail($account['email'], $account['username'], $otp);
+            $emailSent = sendOTPEmail($account['email'], $_SESSION['temp_name'], $otp);
 
             if ($emailSent) {
                 setFlashMessage('A secure verification code has been dispatched to your email address.', 'success');

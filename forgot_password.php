@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Build the validation confirmation link string
         $resetLink = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/reset_password.php?token=" . $token;
-        sendResetEmail($email, $account['username'], $resetLink);
+        sendResetEmail($email, $email, $resetLink);
     }
 
     setFlashMessage('If the account exists, a secure password recovery instruction link has been dispatched.', 'success');

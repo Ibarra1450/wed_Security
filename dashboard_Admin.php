@@ -3,8 +3,8 @@ require_once 'functions.php';
 requireRole('admin');
 
 // Get all users and admins for management
-$users = $pdo->query("SELECT id, username, email, created_at FROM users ORDER BY created_at DESC")->fetchAll();
-$admins = $pdo->query("SELECT id, username, email, created_at FROM admins ORDER BY created_at DESC")->fetchAll();
+$users = $pdo->query("SELECT id, email, first_name, last_name, middle_initial, created_at FROM users ORDER BY created_at DESC")->fetchAll();
+$admins = $pdo->query("SELECT id, email, first_name, last_name, middle_initial, created_at FROM admins ORDER BY created_at DESC")->fetchAll();
 
 // Get statistics
 $stats = [
@@ -25,7 +25,7 @@ $stats = [
 <body>
     <div class="container" style="max-width: 1200px;">
         <h2>Admin Dashboard</h2>
-        <p>Welcome, Administrator <?= htmlspecialchars($_SESSION['username']) ?>!</p>
+        <p>Welcome, Administrator <?= htmlspecialchars($_SESSION['name']) ?>!</p>
         
         <!-- Statistics Cards -->
         <div class="stats-grid">
@@ -61,7 +61,7 @@ $stats = [
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
+                        <th>Full Name</th>
                         <th>Email</th>
                         <th>Registered</th>
                         <th>Actions</th>
@@ -71,7 +71,12 @@ $stats = [
                     <?php foreach ($users as $user): ?>
                     <tr>
                         <td><?= $user['id'] ?></td>
-                        <td><?= htmlspecialchars($user['username']) ?></td>
+                        <td>
+                            <?php
+                            $fullName = trim(($user['first_name'] ?? '') . ' ' . ($user['middle_initial'] ? $user['middle_initial'] . ' ' : '') . ($user['last_name'] ?? ''));
+                            echo htmlspecialchars($fullName ?: 'Not Set');
+                            ?>
+                        </td>
                         <td><?= htmlspecialchars($user['email']) ?></td>
                         <td><?= date('Y-m-d', strtotime($user['created_at'])) ?></td>
                         <td>
@@ -91,7 +96,7 @@ $stats = [
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
+                        <th>Full Name</th>
                         <th>Email</th>
                         <th>Registered</th>
                         <th>Actions</th>
@@ -101,7 +106,12 @@ $stats = [
                     <?php foreach ($admins as $admin): ?>
                     <tr>
                         <td><?= $admin['id'] ?></td>
-                        <td><?= htmlspecialchars($admin['username']) ?></td>
+                        <td>
+                            <?php
+                            $fullName = trim(($admin['first_name'] ?? '') . ' ' . ($admin['middle_initial'] ? $admin['middle_initial'] . ' ' : '') . ($admin['last_name'] ?? ''));
+                            echo htmlspecialchars($fullName ?: 'Not Set');
+                            ?>
+                        </td>
                         <td><?= htmlspecialchars($admin['email']) ?></td>
                         <td><?= date('Y-m-d', strtotime($admin['created_at'])) ?></td>
                         <td>

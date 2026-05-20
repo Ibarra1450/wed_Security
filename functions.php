@@ -126,23 +126,23 @@ function getUserByEmail($email, $table) {
         return false;
     }
     
-    $stmt = $pdo->prepare("SELECT id, username, email, password FROM $table WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id, email, first_name, last_name, password FROM $table WHERE email = ?");
     $stmt->execute([$email]);
     return $stmt->fetch();
 }
 
 /**
- * Check if username or email exists in specific table
+ * Check if email exists in specific table
  */
-function userExists($username, $email, $table) {
+function userExists($email, $table) {
     global $pdo;
     
     if ($table !== 'users' && $table !== 'admins') {
         return false;
     }
     
-    $stmt = $pdo->prepare("SELECT id FROM $table WHERE username = ? OR email = ?");
-    $stmt->execute([$username, $email]);
+    $stmt = $pdo->prepare("SELECT id FROM $table WHERE email = ?");
+    $stmt->execute([$email]);
     return $stmt->fetch() !== false;
 }
 

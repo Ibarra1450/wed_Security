@@ -8,17 +8,20 @@ $type = $_GET['type'] ?? 'user';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCSRFToken($_POST['csrf_token'] ?? '');
     
-    $username = sanitizeInput($_POST['username']);
     $email = sanitizeInput($_POST['email']);
+    $firstName = sanitizeInput($_POST['first_name'] ?? '');
+    $lastName  = sanitizeInput($_POST['last_name'] ?? '');
+    $middleInitial = strtoupper(sanitizeInput($_POST['middle_initial'] ?? ''));
     $table = ($type === 'admin') ? 'admins' : 'users';
     
     // Validation
     $errors = [];
     
-    if (empty($username) || strlen($username) < 3) {
-        $errors[] = 'Username must be at least 3 characters.';
-    } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-        $errors[] = 'Username can only contain letters, numbers, and underscores.';
+    if (empty($firstName)) {
+        $errors[] = 'First Name is required.';
+    }
+    if (empty($lastName)) {
+        $errors[] = 'Last Name is required.';
     }
     
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -27,13 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Only @ntc.edu.ph email addresses are allowed.';
     }
     
-    // Check if username or email already exists (excluding current user)
+    // Check if email already exists (excluding current user)
     if (empty($errors)) {
-        $stmt = $pdo->prepare("SELECT id FROM $table WHERE username = ? AND id != ?");
-        if ($stmt->execute([$username, $id]) && $stmt->fetch()) {
-            $errors[] = 'This username is already taken.';
-        }
-        
         $stmt = $pdo->prepare("SELECT id FROM $table WHERE email = ? AND id != ?");
         if ($stmt->execute([$email, $id]) && $stmt->fetch()) {
             $errors[] = 'This email address is already registered.';
@@ -41,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (empty($errors)) {
-        $stmt = $pdo->prepare("UPDATE $table SET username = ?, email = ? WHERE id = ?");
-        if ($stmt->execute([$username, $email, $id])) {
+        $stmt = $pdo->prepare("UPDATE $table SET email = ?, first_name = ?, last_name = ?, middle_initial = ? WHERE id = ?");
+        if ($stmt->execute([$email, $firstName, $lastName, $middleInitial, $id])) {
             setFlashMessage(ucfirst($type) . ' updated successfully!', 'success');
             header('Location: dashboard_Admin.php');
             exit;
@@ -59,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get user data
 $table = ($type === 'admin') ? 'admins' : 'users';
-$stmt = $pdo->prepare("SELECT username, email FROM $table WHERE id = ?");
+$stmt = $pdo->prepare("SELECT email, first_name, last_name, middle_initial FROM $table WHERE id = ?");
 $stmt->execute([$id]);
 $user = $stmt->fetch();
 
@@ -83,9 +81,21 @@ if (!$user) {
             <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
             
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" name="username" id="username" 
-                       value="<?= htmlspecialchars($user['username']) ?>" required>
+                <label for="first_name">First Name</label>
+                <input type="text" name="first_name" id="first_name" 
+                       value="<?= htmlspecialchars($user['first_name'] ?? '') ?>" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" name="last_name" id="last_name" 
+                       value="<?= htmlspecialchars($user['last_name'] ?? '') ?>" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="middle_initial">Middle Initial</label>
+                <input type="text" name="middle_initial" id="middle_initial" 
+                       value="<?= htmlspecialchars($user['middle_initial'] ?? '') ?>" maxlength="2">
             </div>
             
             <div class="form-group">

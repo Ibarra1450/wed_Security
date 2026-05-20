@@ -86,3 +86,14 @@
 2026-05-19 07:51:53 - User ID: 1, Role: user, Action: login
 2026-05-19 07:52:50 - User ID: 1, Role: user, Action: logout
 2026-05-19 18:01:04 - User ID: 1, Role: user, Action: login
+2026-05-19 18:03:46 - User ID: 1, Role: user, Action: logout
+2026-05-20 09:02:16 - User ID: 1, Role: user, Action: login
+2026-05-20 09:48:58 - User ID: 1, Role: user, Action: logout
+2026-05-20 10:07:25 - User ID: 2, Role: user, Action: registration
+2026-05-20 10:10:50 - User ID: 1, Role: user, Action: login
+2026-05-20 10:15:38 - User ID: 3, Role: user, Action: registration
+2026-05-20 10:16:31 - User ID: 3, Role: user, Action: login
+2026-05-20 10:24:42 - User ID: 3, Role: user, Action: logout
+2026-05-20 10:25:31 - User ID: 1, Role: admin, Action: registration
+2026-05-20 10:26:09 - User ID: 1, Role: admin, Action: login
+2026-05-20 10:26:34 - User ID: 1, Role: admin, Action: logout

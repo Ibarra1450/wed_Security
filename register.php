@@ -14,18 +14,39 @@ if (isLoggedIn()) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCSRFToken($_POST['csrf_token'] ?? '');
 
-    $username = sanitizeInput($_POST['username']);
     $email    = sanitizeInput($_POST['email']);
+    $firstName = sanitizeInput($_POST['first_name'] ?? '');
+    $lastName  = sanitizeInput($_POST['last_name'] ?? '');
+    $middleInitial = strtoupper(sanitizeInput($_POST['middle_initial'] ?? ''));
     $password = $_POST['password'];
     $confirm  = $_POST['confirm_password'];
     $accountType = $_POST['account_type'] ?? 'user'; // 'user' or 'admin'
 
     // Basic validation
     $errors = [];
-    if (empty($username) || strlen($username) < 3) {
-        $errors[] = 'Username must be at least 3 characters.';
-    } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-        $errors[] = 'Username can only contain letters, numbers, and underscores.';
+
+    if (empty($firstName)) {
+        $errors[] = 'First Name is required.';
+    } elseif (preg_match('/\d/', $firstName)) {
+        $errors[] = 'Numbers are not allowed in First Name.';
+    } elseif (!preg_match("/^[a-zA-Z\s'-]+$/", $firstName)) {
+        $errors[] = 'First Name can only contain letters, spaces, hyphens, and apostrophes.';
+    }
+
+    if (empty($lastName)) {
+        $errors[] = 'Last Name is required.';
+    } elseif (preg_match('/\d/', $lastName)) {
+        $errors[] = 'Numbers are not allowed in Last Name.';
+    } elseif (!preg_match("/^[a-zA-Z\s'-]+$/", $lastName)) {
+        $errors[] = 'Last Name can only contain letters, spaces, hyphens, and apostrophes.';
+    }
+
+    if (!empty($middleInitial)) {
+        if (preg_match('/\d/', $middleInitial)) {
+            $errors[] = 'Numbers are not allowed in Middle Initial.';
+        } elseif (!preg_match("/^[A-Z]{1}\.?$/", $middleInitial)) {
+            $errors[] = 'Middle Initial must be a single letter (optionally with a period).';
+        }
     }
     
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -50,21 +71,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Step 1: Decide which table to use
         $table = ($accountType === 'admin') ? 'admins' : 'users';
 
-        // Step 2: Check if username or email already exists in that specific table
-        $stmt = $pdo->prepare("SELECT id FROM $table WHERE username = ?");
-        if ($stmt->execute([$username]) && $stmt->fetch()) {
-            $errors[] = 'This username is already taken.';
-        }
-        
+        // Step 2: Check if email already exists in that specific table
         $stmt = $pdo->prepare("SELECT id FROM $table WHERE email = ?");
         if ($stmt->execute([$email]) && $stmt->fetch()) {
             $errors[] = 'This email address is already registered.';
         } else {
             // Step 3: Hash password and insert into the chosen table
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO $table (username, email, password) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO $table (email, first_name, last_name, middle_initial, password) VALUES (?, ?, ?, ?, ?)");
             
-            if ($stmt->execute([$username, $email, $hashed])) {
+            if ($stmt->execute([$email, $firstName, $lastName, $middleInitial, $hashed])) {
                 logActivity($pdo->lastInsertId(), $accountType, 'registration');
                 setFlashMessage(ucfirst($accountType) . ' registration successful! You can now log in.', 'success');
                 header('Location: index.php');
@@ -131,11 +147,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
                     
                     <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" name="username" id="username" placeholder="Enter your username" required 
-                               pattern="[a-zA-Z0-9_]+" title="Letters, numbers, and underscores only">
-                        <small id="username-static-desc">Only letters, numbers, and underscores allowed</small>
+                        <label for="first_name">First Name</label>
+                        <input type="text" name="first_name" id="first_name" placeholder="Enter your first name" required 
+                               pattern="^[a-zA-Z\s'-]+$" title="First name must only contain letters, spaces, hyphens, and apostrophes. Numbers are not allowed.">
                     </div>
+
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" placeholder="Enter your last name" required 
+                               pattern="^[a-zA-Z\s'-]+$" title="Last name must only contain letters, spaces, hyphens, and apostrophes. Numbers are not allowed.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="middle_initial">Middle Initial</label>
+                        <input type="text" name="middle_initial" id="middle_initial" placeholder="E.g. A or A." maxlength="2"
+                               pattern="^[a-zA-Z]?\.?$" title="Single letter (optionally followed by a dot). Numbers are not allowed.">
+                    </div>
+
+
                     
                     <div class="form-group">
                         <label for="email">Email Address</label>
@@ -192,13 +221,11 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const usernameInput = document.getElementById('username');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm_password');
     const accountTypeSelect = document.getElementById('account_type');
     
-    const staticUserDesc = document.getElementById('username-static-desc');
     const staticPassDesc = document.getElementById('password-static-desc');
     
     function createHelperText(input, id) {
@@ -211,12 +238,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return helper;
     }
     
-    const usernameHelper = createHelperText(usernameInput, 'username-helper');
     const emailHelper = createHelperText(emailInput, 'email-helper');
     const passwordHelper = createHelperText(passwordInput, 'password-helper');
     const confirmHelper = createHelperText(confirmPasswordInput, 'confirm-helper');
     
-    usernameHelper.style.display = 'none';
     emailHelper.style.display = 'none';
     passwordHelper.style.display = 'none';
     confirmHelper.style.display = 'none';
@@ -224,8 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function checkExists(type, value, accountType) {
         if (!value) return;
         
-        const helper = type === 'username' ? usernameHelper : emailHelper;
-        if(type === 'username') staticUserDesc.style.display = 'none';
+        const helper = emailHelper;
         
         fetch('check_user.php', {
             method: 'POST',
@@ -237,15 +261,11 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.exists) {
-                helper.textContent = type === 'username' ? 
-                    'This username is already taken.' : 
-                    'This email address is already registered.';
+                helper.textContent = 'This email address is already registered.';
                 helper.className = 'error-hint';
                 helper.style.display = 'block';
             } else {
-                helper.textContent = type === 'username' ? 
-                    'Username is available' : 
-                    'Email is available';
+                helper.textContent = 'Email is available';
                 helper.className = 'success-hint';
                 helper.style.display = 'block';
             }
@@ -295,21 +315,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    usernameInput.addEventListener('blur', function() {
-        const accountType = accountTypeSelect.value;
-        if (this.value.length >= 3) {
-            checkExists('username', this.value, accountType);
-        } else if (this.value.length > 0) {
-            staticUserDesc.style.display = 'none';
-            usernameHelper.textContent = 'Username must be at least 3 characters';
-            usernameHelper.className = 'error-hint';
-            usernameHelper.style.display = 'block';
-        } else {
-            usernameHelper.style.display = 'none';
-            staticUserDesc.style.display = 'block';
-        }
-    });
-
     emailInput.addEventListener('blur', function() {
         const accountType = accountTypeSelect.value;
         const email = this.value;
@@ -336,9 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmPasswordInput.addEventListener('input', validatePassword);
 
     accountTypeSelect.addEventListener('change', function() {
-        if (usernameInput.value) {
-            checkExists('username', usernameInput.value, this.value);
-        }
         if (emailInput.value) {
             checkExists('email', emailInput.value, this.value);
         }

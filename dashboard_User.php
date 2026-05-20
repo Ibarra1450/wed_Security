@@ -12,20 +12,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCSRF();
     }
 
-    // Update username settings
+    // Update user settings
     if (isset($_POST['update_settings'])) {
-        $username = trim($_POST['username']);
+        $firstName = sanitizeInput($_POST['first_name'] ?? '');
+        $lastName  = sanitizeInput($_POST['last_name'] ?? '');
+        $middleInitial = strtoupper(sanitizeInput($_POST['middle_initial'] ?? ''));
 
-        if (empty($username)) {
-            $_SESSION['message'] = 'Username cannot be empty.';
-            $_SESSION['message_type'] = 'error';
-        } else {
-            $update = $pdo->prepare("UPDATE users SET username = ? WHERE id = ?");
-            $update->execute([$username, $userId]);
+        $errors = [];
+        if (empty($firstName)) {
+            $errors[] = 'First Name cannot be empty.';
+        }
+        if (empty($lastName)) {
+            $errors[] = 'Last Name cannot be empty.';
+        }
 
-            $_SESSION['username'] = $username; // Update session username
-            $_SESSION['message'] = 'Username updated successfully.';
+        if (empty($errors)) {
+            $update = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, middle_initial = ? WHERE id = ?");
+            $update->execute([$firstName, $lastName, $middleInitial, $userId]);
+            $_SESSION['message'] = 'Profile settings updated successfully.';
             $_SESSION['message_type'] = 'success';
+        } else {
+            $_SESSION['message'] = implode('<br>', $errors);
+            $_SESSION['message_type'] = 'error';
         }
 
         header('Location: dashboard_User.php');
@@ -73,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get latest user data
-$stmt = $pdo->prepare("SELECT username, email, created_at FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT email, first_name, last_name, middle_initial, created_at FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 ?>
@@ -111,8 +119,16 @@ $user = $stmt->fetch();
                     </div>
                     <div class="panel-content">
                         <div class="info-row">
-                            <span class="info-label">Username:</span>
-                            <span class="info-value"><?= htmlspecialchars($user['username']) ?></span>
+                            <span class="info-label">First Name:</span>
+                            <span class="info-value"><?= htmlspecialchars($user['first_name'] ?? 'Not Set') ?></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Last Name:</span>
+                            <span class="info-value"><?= htmlspecialchars($user['last_name'] ?? 'Not Set') ?></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Middle Initial:</span>
+                            <span class="info-value"><?= htmlspecialchars($user['middle_initial'] ?? 'None') ?></span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Email Address:</span>
@@ -140,9 +156,18 @@ $user = $stmt->fetch();
                                 echo csrfField(); ?>
 
                             <div class="form-group">
-                                <label>Username</label>
-                                <input type="text" name="username" value="<?= htmlspecialchars($user['username']) ?>"
-                                    required>
+                                <label>First Name</label>
+                                <input type="text" name="first_name" value="<?= htmlspecialchars($user['first_name'] ?? '') ?>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name" value="<?= htmlspecialchars($user['last_name'] ?? '') ?>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Middle Initial</label>
+                                <input type="text" name="middle_initial" value="<?= htmlspecialchars($user['middle_initial'] ?? '') ?>" maxlength="2">
                             </div>
 
                             <div class="form-group">

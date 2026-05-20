@@ -15,9 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $table = ($accountType === 'admin') ? 'admins' : 'users';
     
-    if ($type === 'username') {
-        $stmt = $pdo->prepare("SELECT id FROM $table WHERE username = ?");
-    } else if ($type === 'email') {
+    if ($type === 'email') {
         $stmt = $pdo->prepare("SELECT id FROM $table WHERE email = ?");
     } else {
         echo json_encode(['exists' => false]);
