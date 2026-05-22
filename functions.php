@@ -17,9 +17,9 @@ if (file_exists('vendor/autoload.php')) {
 
 // --- 1. SECURE SESSION COOKIE MANAGEMENT ---
 if (session_status() === PHP_SESSION_NONE) {
-    ini_set('session.cookie_httponly', 1);     
-    ini_set('session.cookie_secure', 1);       
-    ini_set('session.cookie_samesite', 'Strict'); 
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_secure', 1);
+    ini_set('session.cookie_samesite', 'Strict');
     session_start();
 }
 
@@ -27,21 +27,23 @@ if (session_status() === PHP_SESSION_NONE) {
 define('USER_TIMEOUT', 1800);  // 30 minutes in seconds for standard accounts
 define('ADMIN_TIMEOUT', 900);   // Aggressive 15 minutes in seconds for administrators
 
-function isLoggedIn() {
+function isLoggedIn()
+{
     return isset($_SESSION['user_id']) && isset($_SESSION['role']);
 }
 
 /**
  * Check session timeout and update last activity
  */
-function checkSessionTimeout() {
+function checkSessionTimeout()
+{
     if (isLoggedIn()) {
         $timeoutLimit = ($_SESSION['role'] === 'admin') ? ADMIN_TIMEOUT : USER_TIMEOUT;
 
         if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeoutLimit)) {
             session_unset();
             session_destroy();
-            
+
             session_start();
             setFlashMessage('Your session has expired due to inactivity. Please log in again.', 'error');
             header('Location: index.php');
@@ -54,9 +56,10 @@ function checkSessionTimeout() {
 /**
  * Redirect if not logged in
  */
-function requireLogin() {
+function requireLogin()
+{
     checkSessionTimeout();
-    
+
     if (!isLoggedIn()) {
         setFlashMessage('Please log in to access this page.', 'error');
         header('Location: index.php');
@@ -67,12 +70,13 @@ function requireLogin() {
 /**
  * Role-based access control
  */
-function requireRole($requiredRole) {
+function requireRole($requiredRole)
+{
     requireLogin();
-    
+
     if ($_SESSION['role'] !== $requiredRole) {
         setFlashMessage('You do not have permission to access this page.', 'error');
-        
+
         if ($_SESSION['role'] === 'admin') {
             header('Location: dashboard_Admin.php');
         } else {
@@ -85,7 +89,8 @@ function requireRole($requiredRole) {
 /**
  * Generate a CSRF token and store it in the session
  */
-function generateCSRFToken() {
+function generateCSRFToken()
+{
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
@@ -95,7 +100,8 @@ function generateCSRFToken() {
 /**
  * Verify CSRF token
  */
-function verifyCSRFToken($token) {
+function verifyCSRFToken($token)
+{
     if (!isset($_SESSION['csrf_token']) || $token !== $_SESSION['csrf_token']) {
         die('Invalid CSRF token match context.');
     }
@@ -104,14 +110,16 @@ function verifyCSRFToken($token) {
 /**
  * Basic input sanitization
  */
-function sanitizeInput($data) {
+function sanitizeInput($data)
+{
     return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
 }
 
 /**
  * Set a flash message (will be shown in the chocolate bar)
  */
-function setFlashMessage($message, $type = 'success') {
+function setFlashMessage($message, $type = 'success')
+{
     $_SESSION['message'] = $message;
     $_SESSION['message_type'] = $type;
 }
@@ -119,13 +127,14 @@ function setFlashMessage($message, $type = 'success') {
 /**
  * Get user by email from specific table
  */
-function getUserByEmail($email, $table) {
+function getUserByEmail($email, $table)
+{
     global $pdo;
-    
+
     if ($table !== 'users' && $table !== 'admins') {
         return false;
     }
-    
+
     $stmt = $pdo->prepare("SELECT id, email, first_name, last_name, password FROM $table WHERE email = ?");
     $stmt->execute([$email]);
     return $stmt->fetch();
@@ -134,13 +143,14 @@ function getUserByEmail($email, $table) {
 /**
  * Check if email exists in specific table
  */
-function userExists($email, $table) {
+function userExists($email, $table)
+{
     global $pdo;
-    
+
     if ($table !== 'users' && $table !== 'admins') {
         return false;
     }
-    
+
     $stmt = $pdo->prepare("SELECT id FROM $table WHERE email = ?");
     $stmt->execute([$email]);
     return $stmt->fetch() !== false;
@@ -149,7 +159,8 @@ function userExists($email, $table) {
 /**
  * Log user activity
  */
-function logActivity($userId, $role, $action) {
+function logActivity($userId, $role, $action)
+{
     $logEntry = date('Y-m-d H:i:s') . " - User ID: $userId, Role: $role, Action: $action" . PHP_EOL;
     file_put_contents('activity.log', $logEntry, FILE_APPEND);
 }
@@ -157,7 +168,8 @@ function logActivity($userId, $role, $action) {
 /**
  * --- 2. INTEGRATED PHPMailer OTP DELIVERY FUNCTION ---
  */
-function sendOTPEmail($recipientEmail, $recipientName, $otpCode) {
+function sendOTPEmail($recipientEmail, $recipientName, $otpCode)
+{
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
         error_log("OTP Generation Warning: PHPMailer missing. Relying on backup log output instead.");
         return false;
@@ -167,16 +179,15 @@ function sendOTPEmail($recipientEmail, $recipientName, $otpCode) {
 
     try {
         // --- SMTP Server Settings ---
-        $mail->isSMTP();                                            
-        $mail->Host       = 'smtp.gmail.com';                     
-        $mail->SMTPAuth   = true;                                   
-        
-        // CRITICAL CONFIGURATION: Replace these placeholders with your real details
-        $mail->Username   = 'cpanel938@gmail.com';        // Your Gmail address
-        $mail->Password   = 'jymr oqka drri nwhh';                // Your 16-character Google APP PASSWORD
-        
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         
-        $mail->Port       = 587;                                    
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+
+        $mail->Username = getenv('SMTP_USERNAME') ?: 'cpanel938@gmail.com';
+        $mail->Password = getenv('SMTP_PASSWORD') ?: 'jymr oqka drri nwhh';
+
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
 
         // --- SMTP Connection Tweaks for Local Dev Environments (XAMPP/WAMP) ---
         $mail->SMTPOptions = [
@@ -189,13 +200,13 @@ function sendOTPEmail($recipientEmail, $recipientName, $otpCode) {
 
         // --- Identity Headers ---
         $mail->setFrom('cpanel938@gmail.com', 'Secure Auth System');
-        $mail->addAddress($recipientEmail, $recipientName);     
+        $mail->addAddress($recipientEmail, $recipientName);
 
         // --- HTML Email Content ---
-        $mail->isHTML(true);                                  
+        $mail->isHTML(true);
         $mail->Subject = 'Your 6-Digit Verification Code';
-        
-        $mail->Body    = "
+
+        $mail->Body = "
             <div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;\">
                 <div style=\"border-left: 5px solid #2196f3; padding-left: 15px; margin-bottom: 20px;\">
                     <h2 style=\"color: #1a1a1a; margin: 0; font-size: 20px; font-weight: 700;\">Security Verification Code</h2>
@@ -210,7 +221,7 @@ function sendOTPEmail($recipientEmail, $recipientName, $otpCode) {
                 <p style=\"color: #718096; font-size: 12px; line-height: 1.5;\">This verification system payload parameter is fragile and short-lived. If you did not execute this authentication query sequence, change your root security account parameters immediately.</p>
             </div>
         ";
-        
+
         $mail->AltBody = "Your verification authorization code is: " . $otpCode;
 
         $mail->send();
@@ -228,7 +239,8 @@ function sendOTPEmail($recipientEmail, $recipientName, $otpCode) {
 /**
  * Store password reset token details safely
  */
-function storeResetToken($email, $accountType, $token) {
+function storeResetToken($email, $accountType, $token)
+{
     global $pdo;
     // Clear out residual expired recovery history records matching this footprint
     $stmt = $pdo->prepare("DELETE FROM password_resets WHERE email = ? AND account_type = ?");
@@ -243,7 +255,8 @@ function storeResetToken($email, $accountType, $token) {
 /**
  * Validate token parameters vs database baseline records
  */
-function verifyResetToken($token) {
+function verifyResetToken($token)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT email, account_type FROM password_resets WHERE token = ? AND expires_at > NOW() LIMIT 1");
     $stmt->execute([$token]);
@@ -253,14 +266,15 @@ function verifyResetToken($token) {
 /**
  * Update the targeted user account credential string and trash used recovery token
  */
-function updatePasswordAndClearToken($email, $table, $newPassword, $token) {
+function updatePasswordAndClearToken($email, $table, $newPassword, $token)
+{
     global $pdo;
     if ($table !== 'users' && $table !== 'admins') {
         return false;
     }
 
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-    
+
     // Process core account structural modification
     $stmt = $pdo->prepare("UPDATE $table SET password = ? WHERE email = ?");
     if ($stmt->execute([$hashedPassword, $email])) {
@@ -275,20 +289,21 @@ function updatePasswordAndClearToken($email, $table, $newPassword, $token) {
 /**
  * Dedicated transactional email template delivery routine for password reset workflows
  */
-function sendResetEmail($recipientEmail, $recipientName, $resetLink) {
+function sendResetEmail($recipientEmail, $recipientName, $resetLink)
+{
     if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
         return false;
     }
 
     $mail = new PHPMailer(true);
     try {
-        $mail->isSMTP();                                            
-        $mail->Host       = 'smtp.gmail.com';                     
-        $mail->SMTPAuth   = true;                                   
-        $mail->Username   = 'cpanel938@gmail.com';   
-        $mail->Password   = 'jymr oqka drri nwhh'; 
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         
-        $mail->Port       = 587;                                    
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'cpanel938@gmail.com';
+        $mail->Password = 'jymr oqka drri nwhh';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
 
         $mail->SMTPOptions = [
             'ssl' => [
@@ -299,12 +314,12 @@ function sendResetEmail($recipientEmail, $recipientName, $resetLink) {
         ];
 
         $mail->setFrom('cpanel938@gmail.com', 'Secure Auth System');
-        $mail->addAddress($recipientEmail, $recipientName);     
+        $mail->addAddress($recipientEmail, $recipientName);
 
-        $mail->isHTML(true);                                  
+        $mail->isHTML(true);
         $mail->Subject = 'Reset Your Account Password';
-        
-        $mail->Body    = "
+
+        $mail->Body = "
             <div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;\">
                 <div style=\"border-left: 5px solid #2196f3; padding-left: 15px; margin-bottom: 20px;\">
                     <h2 style=\"color: #1a1a1a; margin: 0; font-size: 20px; font-weight: 700;\">Password Reset Requested</h2>
